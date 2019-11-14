@@ -18,7 +18,7 @@ jobs:
       - name: Get Next Semver
         id: next_semver
         uses: bengreenier-actions/gh-release-next-semver@master
-        env:
+        with:
           # Value provided by actions implicitly
           token: ${{ secrets.GITHUB_TOKEN }}
           use_tag_name: true
