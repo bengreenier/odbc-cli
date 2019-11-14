@@ -26,10 +26,10 @@ jobs:
       run: zip -r release.${{ github.sha }}-${{ matrix.osarch }}.zip dist-${{ matrix.osarch }}
     - uses: bengreenier-archive/create-release@master
       with:
-        token: ${{github.token}}
-        name: ${{github.sha}}
+        token: ${{ github.token }}
+        name: ${{ github.sha }}
         code: latest
-        prerelease: true
+        prerelease: false
         allowUpdating: true
         assets: >
           release.${{ github.sha }}-${{ matrix.osarch }}.zip:release-${{ matrix.osarch }}.zip:application/zip
