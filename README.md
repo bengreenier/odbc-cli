@@ -11,7 +11,9 @@ I needed a program that let me write quick test queries, executed said queries u
 + Get [The latest release](https://github.com/bengreenier/odbc-cli/releases/latest)
 + Modify (or create) `.config.json` next to the binary, with the following JSON content, populated for your use case:
 ```
-USE EMBED LINK
+{
+ "connectionString": "Driver={Custom ODBC};Host=mysite.com;Port=1337;Ssl=1;AuthMech=0;"
+}
 ```
 + Run `odbc-cli.exe`
 
