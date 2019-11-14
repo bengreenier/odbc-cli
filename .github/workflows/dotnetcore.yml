@@ -1,52 +1,97 @@
 name: Master CD
 
+# When we push to master
 on:
   push:
-    branches: 
+    branches:
       - master
 
 jobs:
   create_release:
     runs-on: ubuntu-latest
     steps:
+      # Create a GitHub release using the latest tag
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          # Provided by actions
+          # Value provided by actions implicitly
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: latest
-          release_name: Release ${{ github.ref }}
+          release_name: ${{ github.ref }}
           draft: false
           prerelease: false
+
+      # Write the asset upload url for the release to disk (in a file)
+      - run: echo ${{ steps.create_release.outputs.upload_url }} > release_upload_url.txt
+
+      # Upload that file with the release info to the instance-specific artifact store
+      # This is sadly necessary, so we can access this data in the multiple jobs below
+      - uses: actions/upload-artifact@master
+        with:
+          name: release_upload_url
+          path: release_upload_url.txt
+
   build_and_upload:
+    # Wait until the release is created
     needs: [create_release]
     strategy:
       matrix:
+        # We'll run these same steps 3 times, substituting osarch for each of these values
         osarch: [win-x64, linux-x64, osx-x64]
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.0.100
-    - name: Build with dotnet
-      run: dotnet publish -r ${{ matrix.osarch }} -c Release -o dist-${{ matrix.osarch }} /p:PublishSingleFile=true
-    - name: Place example config
-      run: cp .config.example.json dist-${{ matrix.osarch }}/.config.json
-    - name: Zip release
-      run: zip -r release.${{ github.sha }}-${{ matrix.osarch }}.zip dist-${{ matrix.osarch }}
-    - name: Upload Release Artifact
-      id: upload_release_artifact
-      uses: actions/upload-release-asset@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        # This pulls from the CREATE RELEASE step above
-        upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./release.${{ github.sha }}-${{ matrix.osarch }}.zip
-        asset_name: release-${{ matrix.osarch }}.zip
-        asset_content_type: application/zip
+      # Download the file with the release info in it (so we can upload later)
+      - uses: actions/download-artifact@master
+        with:
+          name: release_upload_url
+          path: release_upload_url.txt
+
+      # Read that file into an output variable, so we can reference it later
+      - uses: bengreenier-actions/shell-with-output@master
+        id: read_upload_url
+        with:
+          command: cat release_upload_url.txt
+
+      # Remove the file
+      - run: rm release_upload_url.txt
+
+      # Check out our code
+      - uses: actions/checkout@v1
+
+      # Configure dotnet sdk
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.0.100
+
+      # Run a dotnet publish (including build) for the given osarch
+      # Store the result into a folder dist-osarch (ie: dist-win-x64)
+      - name: Build with dotnet
+        run: dotnet publish -r ${{ matrix.osarch }} -c Release -o dist-${{ matrix.osarch }} /p:PublishSingleFile=true
+
+      # Copy our example config into the same folder dist-osarch
+      # Renaming to .config along the way (the expected runtime name)
+      - name: Place example config
+        run: cp .config.example.json dist-${{ matrix.osarch }}/.config.json
+
+      # Finally, compress this into a zip
+      # The zip name contains this sha1 (for the build commitish) as well as osarch
+      - name: Zip release
+        run: zip -r release.${{ github.sha }}-${{ matrix.osarch }}.zip dist-${{ matrix.osarch }}
+
+      # We can then use that zip and the url from above to upload the zip to the release
+      # We'll do this for each osarch, ending up with one release, with 3 osarch zips attached
+      - name: Upload Release Artifact
+        id: upload_release_artifact
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # This pulls from the read_upload_url step above
+          upload_url: ${{ steps.read_upload_url.outputs.stdout }}
+          asset_path: ./release.${{ github.sha }}-${{ matrix.osarch }}.zip
+          asset_name: release-${{ matrix.osarch }}.zip
+          asset_content_type: application/zip
