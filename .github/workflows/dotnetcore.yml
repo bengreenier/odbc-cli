@@ -7,7 +7,9 @@ on:
 
 jobs:
   build:
-
+    strategy:
+      matrix:
+        osarch: [win-x64, linux-x64, osx-x64]
     runs-on: ubuntu-latest
 
     steps:
@@ -17,11 +19,11 @@ jobs:
       with:
         dotnet-version: 3.0.100
     - name: Build with dotnet
-      run: dotnet publish -r win-x64 -c Release -o dist /p:PublishSingleFile=true
+      run: dotnet publish -r ${{ matrix.osarch }} -c Release -o dist-${{ matrix.osarch }} /p:PublishSingleFile=true
     - name: Place example config
-      run: cp .config.example.json dist/.config.json
+      run: cp .config.example.json dist-${{ matrix.osarch }}/.config.json
     - name: Zip release
-      run: zip -r release.${{github.sha}}.zip dist
+      run: zip -r release.${{ github.sha }}-${{ matrix.osarch }}.zip dist-${{ matrix.osarch }}
     - uses: majkrzak/create-release@master
       with:
         token: ${{github.token}}
@@ -30,4 +32,4 @@ jobs:
         prerelease: true
         allowUpdating: true
         assets: >
-          release.${{github.sha}}.zip:release-win-x64.zip:application/zip
+          release.${{ github.sha }}-${{ matrix.osarch }}.zip:release-${{ matrix.osarch }}.zip:application/zip
