@@ -1,0 +1,33 @@
+name: Master CD
+
+on:
+  push:
+    branches: 
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.100
+    - name: Build with dotnet
+      run: dotnet publish -r win-x64 -c Release -o dist /p:PublishSingleFile=true
+    - name: Place example config
+      run: cp .config.example.json dist/.config.json
+    - name: Zip release
+      run: zip -r release.${{github.sha}}.zip dist
+    - uses: majkrzak/create-release@master
+      with:
+        token: ${{github.token}}
+        name: ${{github.sha}}
+        code: latest
+        prerelease: true
+        allowUpdating: true
+        assets: >
+          release.${{github.sha}}.zip:release-win-x64.zip:application/zip

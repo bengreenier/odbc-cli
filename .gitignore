@@ -1,0 +1,6 @@
+.vs/
+bin/
+dist/
+obj/
+.config.json
+[Pp]roperties/launchSettings.json

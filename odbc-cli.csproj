@@ -3,10 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <RootNamespace>odbc_test</RootNamespace>
+    <RootNamespace>odbc_cli</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Data.Odbc" Version="4.6.0" />
   </ItemGroup>
 
