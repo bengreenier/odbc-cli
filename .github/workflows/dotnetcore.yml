@@ -24,7 +24,7 @@ jobs:
       run: cp .config.example.json dist-${{ matrix.osarch }}/.config.json
     - name: Zip release
       run: zip -r release.${{ github.sha }}-${{ matrix.osarch }}.zip dist-${{ matrix.osarch }}
-    - uses: majkrzak/create-release@master
+    - uses: bengreenier-archive/create-release@master
       with:
         token: ${{github.token}}
         name: ${{github.sha}}
