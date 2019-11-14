@@ -6,7 +6,22 @@ on:
       - master
 
 jobs:
-  build:
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          # Provided by actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: latest
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+  build_and_upload:
+    needs: [create_release]
     strategy:
       matrix:
         osarch: [win-x64, linux-x64, osx-x64]
@@ -24,12 +39,14 @@ jobs:
       run: cp .config.example.json dist-${{ matrix.osarch }}/.config.json
     - name: Zip release
       run: zip -r release.${{ github.sha }}-${{ matrix.osarch }}.zip dist-${{ matrix.osarch }}
-    - uses: bengreenier-archive/create-release@master
+    - name: Upload Release Artifact
+      id: upload_release_artifact
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        token: ${{ github.token }}
-        name: ${{ github.sha }}
-        code: latest
-        prerelease: false
-        allowUpdating: true
-        assets: >
-          release.${{ github.sha }}-${{ matrix.osarch }}.zip:release-${{ matrix.osarch }}.zip:application/zip
+        # This pulls from the CREATE RELEASE step above
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./release.${{ github.sha }}-${{ matrix.osarch }}.zip
+        asset_name: release-${{ matrix.osarch }}.zip
+        asset_content_type: application/zip
