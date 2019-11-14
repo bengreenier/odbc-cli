@@ -60,6 +60,9 @@ jobs:
           name: release_upload_url
           path: release_upload_url.txt
 
+      - run: ls -al
+      - run: cat release_upload_url.txt
+
       # Read that file into an output variable, so we can reference it later
       - uses: bengreenier-actions/shell-with-output@master
         id: read_upload_url
