@@ -1,4 +1,5 @@
 {
   "$schema": "./config-schema.json",
-  "connectionString": "Driver={Custom ODBC};Host=mysite.com;Port=1337;Ssl=1;AuthMech=0;"
+  "connectionString": "Driver={Custom ODBC};Host=mysite.com;Port=1337;Ssl=1;AuthMech=0;",
+  "disableOutput": false
 }

@@ -23,6 +23,19 @@ namespace odbc_cli
                 throw new InvalidOperationException(".config.json missing 'connectionString'.");
             }
 
+            var disableOutput = false;
+            if (conf["disableOutput"] != null)
+            {
+                try
+                {
+                    disableOutput = conf["disableOutput"].Value<bool>();
+                }
+                catch(System.FormatException)
+                {
+                    throw new System.FormatException(".config.json invalid boolean value for 'disableOutput'.");
+                }
+            }
+
             using (var connection = new OdbcConnection(connStr))
             {
                 connection.Open();
@@ -39,6 +52,8 @@ namespace odbc_cli
 
                     try
                     {
+                        var watch = System.Diagnostics.Stopwatch.StartNew();
+
                         using (var reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -46,10 +61,16 @@ namespace odbc_cli
                                 var res = new object[reader.FieldCount];
                                 var read = reader.GetValues(res);
 
-                                // \n between entries is more readable
-                                Console.WriteLine(string.Join(",", res.Take(read)) + "\n");
+                                if (!disableOutput)
+                                {
+                                    // \n between entries is more readable
+                                    Console.WriteLine(string.Join(",", res.Take(read)) + "\n");
+                                }
                             }
                         }
+
+                        watch.Stop();
+                        Console.WriteLine($"Elapsed milliseconds: {watch.ElapsedMilliseconds}");
                     }
                     catch (Exception ex)
                     {
