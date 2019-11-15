@@ -63,6 +63,9 @@ jobs:
         with:
           name: release_upload_url
 
+      # Move the release contents and delete the folder
+      - run: mv release_upload_url/release_upload_url.txt release_upload_url.txt && rm -rf release_upload_url 
+
       - run: ls -al
       - run: cat release_upload_url.txt
 
