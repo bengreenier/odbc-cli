@@ -62,7 +62,6 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: release_upload_url
-          path: release_upload_url.txt
 
       - run: ls -al
       - run: cat release_upload_url.txt
