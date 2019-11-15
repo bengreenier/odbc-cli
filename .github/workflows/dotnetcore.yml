@@ -39,7 +39,7 @@ jobs:
           prerelease: false
 
       # Write the asset upload url for the release to disk (in a file)
-      - run: echo ${{ steps.create_release.outputs.upload_url }} > release_upload_url.txt
+      - run: echo "${{ steps.create_release.outputs.upload_url }}" > release_upload_url.txt
 
       # Upload that file with the release info to the instance-specific artifact store
       # This is sadly necessary, so we can access this data in the multiple jobs below
