@@ -60,6 +60,12 @@ namespace odbc_cli
                             continue;
                         }
                     }
+                    
+                    if (exitOnEmptyStdin)
+                    {
+                        // an extra \n makes things nicer for piped input
+                        Console.WriteLine();
+                    }
 
                     var command = new OdbcCommand(input);
                     command.Connection = connection;
