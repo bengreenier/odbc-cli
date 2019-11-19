@@ -51,14 +51,7 @@ namespace odbc_cli
                     
                     if (string.IsNullOrEmpty(input))
                     {
-                        if (exitOnEmptyStdin)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            continue;
-                        }
+                        break;
                     }
                     
                     if (exitOnEmptyStdin)
