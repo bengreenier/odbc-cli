@@ -10,6 +10,8 @@ namespace odbc_cli
     {
         static void Main(string[] args)
         {
+            var exitOnEmptyStdin = args.LastOrDefault() == "-";
+
             if (!File.Exists(".config.json"))
             {
                 throw new InvalidOperationException(".config.json could not be found.");
@@ -46,6 +48,17 @@ namespace odbc_cli
                     Console.Write("> ");
                     var input = Console.ReadLine();
                     Console.ForegroundColor = ConsoleColor.Blue;
+                    
+                    if (string.IsNullOrEmpty(input))
+                    {
+                        break;
+                    }
+                    
+                    if (exitOnEmptyStdin)
+                    {
+                        // an extra \n makes things nicer for piped input
+                        Console.WriteLine();
+                    }
 
                     var command = new OdbcCommand(input);
                     command.Connection = connection;
