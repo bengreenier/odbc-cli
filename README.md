@@ -3,6 +3,7 @@
 A small ODBC driver test program
 
 ![CD Badge](https://github.com/bengreenier/odbc-cli/workflows/Master%20CD/badge.svg)
+![CI Badge](https://github.com/bengreenier/odbc-cli/workflows/Master%20CI/badge.svg)
 
 I needed a program that let me write quick test queries, executed said queries using an installed ODBC driver, and showed the results. This is that program.
 
