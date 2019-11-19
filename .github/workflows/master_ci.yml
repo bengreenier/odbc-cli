@@ -1,0 +1,45 @@
+name: Master CI
+
+on:
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        # We'll run these same steps 3 times, substituting osarch for each of these values
+        osarch: [win-x64, linux-x64, osx-x64]
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out our code
+      - uses: actions/checkout@v1
+
+      # Configure dotnet sdk
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.0.100
+
+      # Run a dotnet publish (including build) for the given osarch
+      # Store the result into a folder dist-osarch (ie: dist-win-x64)
+      - name: Build with dotnet
+        run: dotnet publish -r ${{ matrix.osarch }} -c Release -o dist-${{ matrix.osarch }} /p:PublishSingleFile=true
+
+      # Copy our example config into the same folder dist-osarch
+      # Renaming to .config along the way (the expected runtime name)
+      - name: Place example config
+        run: cp .config.example.json dist-${{ matrix.osarch }}/.config.json
+
+      # Finally, compress this into a zip
+      # The zip name contains this sha1 (for the build commitish) as well as osarch
+      - name: Zip release
+        run: zip -r release.${{ github.sha }}-${{ matrix.osarch }}.zip dist-${{ matrix.osarch }}
+        
+      # Upload that produced artifact
+      - uses: actions/upload-artifact@master
+        with:
+          name: release.${{ github.sha }}-${{ matrix.osarch }}
+          path: release.${{ github.sha }}-${{ matrix.osarch }}.zip
